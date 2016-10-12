@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Web Crawler</title>
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+	<h1>Input</h1>
+    <div class="input">
+		<textarea id='inputTextArea' >
+		</textarea>
+    </div>
+	<button type="button" id='crawl'>Crawl</button>
+	<button type="button" id='clearInput'>Clear JSON</button>
+	<button type="button" id='testData1'>Use JSON Test Data 1</button>
+	<button type="button" id='testData2'>Use JSON Test Data 2</button>
+	<h1 class='output'>Output</h1>
+    <div class='output' id="output">
+		<h3>Success:</h3>
+		<div id="successOutput">
+		</div>
+		<h3>Skipped:</h3>
+		<div id="skippedOutput">
+		</div>
+		<h3>Error:</h3>
+		<div id="errorOutput">
+		</div>		
+    </div>
+</body>
+	<script>
+		$(function(){
+			var jsonTestData1 = JSON.stringify(
+				{"pages":[{"address":"http://foo.bar.com/p1",
+				"links":["http://foo.bar.com/p2","http://foo.bar.com/p3","http://foo.bar.com/p4"]},
+				{"address":"http://foo.bar.com/p2",
+				"links":["http://foo.bar.com/p2","http://foo.bar.com/p4"]},
+				{"address":"http://foo.bar.com/p4",
+				"links":["http://foo.bar.com/p5","http://foo.bar.com/p1","http://foo.bar.com/p6"]},
+				{"address":"http://foo.bar.com/p5","links":[]},
+				{"address":"http://foo.bar.com/p6",
+				"links":["http://foo.bar.com/p7","http://foo.bar.com/p4","http://foo.bar.com/p5"]}]});
+				
+			var jsonTestData2 = JSON.stringify(
+				{"pages": [{"address":"http://foo.bar.com/p1","links": ["http://foo.bar.com/p2"]},
+				{"address":"http://foo.bar.com/p2","links": ["http://foo.bar.com/p3"]},
+				{"address":"http://foo.bar.com/p3","links": ["http://foo.bar.com/p4"]},
+				{"address":"http://foo.bar.com/p4","links": ["http://foo.bar.com/p5"]},
+				{"address":"http://foo.bar.com/p5","links": ["http://foo.bar.com/p1"]},
+				{"address":"http://foo.bar.com/p6","links": ["http://foo.bar.com/p1"]}]});
+				
+
+			$('.output').addClass('noDisplay');
+			
+			//Instantiate the socket object
+			var socket = io();
+			
+			$('button#crawl').click(function(){
+				var json = parseJson($('textarea#inputTextArea').val().trim());
+				if(json)
+					socket.emit('crawl', json);
+				return false;
+			});
+			
+			$('button#clearInput').click(function(){
+				$('textarea#inputTextArea').val('');
+				return false;
+			});
+			
+			$('button#testData1').click(function(){
+				$('textarea#inputTextArea').val(jsonTestData1);
+				return false;
+			});
+						
+			$('button#testData2').click(function(){
+				$('textarea#inputTextArea').val(jsonTestData2);
+				return false;
+			});
+		  
+			socket.on ('displayResults', function (msg) {
+				$('#successOutput').empty();
+				$('#skippedOutput').empty();
+				$('#errorOutput').empty();
+				
+				$.each(msg.success, function(index, value) {
+					$('#successOutput').append('<p>' + value + '</p>');
+				});
+				$.each(msg.skipped, function(index, value) {
+					$('#skippedOutput').append('<p>' + value + '</p>');
+				});
+				$.each(msg.error, function(index, value) {
+					$('#errorOutput').append('<p>' + value + '</p>');
+				});
+				
+				$('.output').removeClass('noDisplay');
+			});
+		});
+		
+		function parseJson(str) {
+			try {
+				return JSON.parse(str);
+			} catch (e) {
+				alert('Please enter valid JSON object');
+			}
+		}
+	</script>
+</html>

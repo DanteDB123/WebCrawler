@@ -1,0 +1,17 @@
+textarea {
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+
+	width: 99vw;
+    min-height: 20vh;
+}
+
+p {
+	margin: 0;
+	padding: 0;
+}
+
+.noDisplay {
+ display: none;
+}
